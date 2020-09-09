@@ -1,5 +1,9 @@
 # philiprehberger-safeget
 
+[![Tests](https://github.com/philiprehberger/py-safeget/actions/workflows/publish.yml/badge.svg)](https://github.com/philiprehberger/py-safeget/actions/workflows/publish.yml)
+[![PyPI version](https://img.shields.io/pypi/v/philiprehberger-safeget.svg)](https://pypi.org/project/philiprehberger-safeget/)
+[![License](https://img.shields.io/github/license/philiprehberger/py-safeget)](LICENSE)
+
 Safely access nested dictionary keys without exceptions.
 
 ## Installation
