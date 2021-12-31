@@ -46,6 +46,14 @@ pluck(data, "users.0.name", "config.debug")
 - `has_path(data, path, separator=".")` — Check if path exists
 - `pluck(data, *paths, default=None)` — Extract multiple paths
 
+
+## Development
+
+```bash
+pip install -e .
+python -m pytest tests/ -v
+```
+
 ## License
 
 MIT
