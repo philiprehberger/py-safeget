@@ -31,3 +31,9 @@ Changelog = "https://github.com/philiprehberger/py-safeget/blob/main/CHANGELOG.m
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/philiprehberger_safeget"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+strict = true
