@@ -73,3 +73,39 @@ def test_none_value_vs_missing():
     data = {"a": None}
     assert safeget(data, "a") is None
     assert has_path(data, "a") is True
+
+
+def test_flatten_nested_dict():
+    from philiprehberger_safeget import flatten
+
+    data = {"a": {"b": 1, "c": {"d": 2}}}
+    result = flatten(data)
+    assert result == {"a.b": 1, "a.c.d": 2}
+
+
+def test_flatten_with_list():
+    from philiprehberger_safeget import flatten
+
+    data = {"items": [10, 20]}
+    result = flatten(data)
+    assert result == {"items[0]": 10, "items[1]": 20}
+
+
+def test_flatten_empty_dict():
+    from philiprehberger_safeget import flatten
+
+    assert flatten({}) == {}
+
+
+def test_flatten_flat_dict():
+    from philiprehberger_safeget import flatten
+
+    data = {"a": 1, "b": 2}
+    assert flatten(data) == {"a": 1, "b": 2}
+
+
+def test_flatten_custom_separator():
+    from philiprehberger_safeget import flatten
+
+    data = {"a": {"b": 1}}
+    assert flatten(data, separator="/") == {"a/b": 1}

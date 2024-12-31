@@ -6,6 +6,7 @@ from typing import Any
 
 
 __all__ = [
+    "flatten",
     "safeget",
     "safeset",
     "has_path",
@@ -100,3 +101,36 @@ def pluck(data: dict | list, *paths: str, default: Any = None, separator: str = 
         Dict mapping each path to its value.
     """
     return {path: safeget(data, path, default=default, separator=separator) for path in paths}
+
+
+def flatten(data: dict[str, Any], *, separator: str = ".") -> dict[str, Any]:
+    """Flatten a nested dictionary into a single-level dict with path keys.
+
+    Args:
+        data: The nested dict to flatten.
+        separator: Key separator. Defaults to ``"."``.
+
+    Returns:
+        A flat dict where keys are dot-separated paths.
+
+    Example::
+
+        >>> flatten({"a": {"b": 1, "c": {"d": 2}}})
+        {"a.b": 1, "a.c.d": 2}
+    """
+    result: dict[str, Any] = {}
+
+    def _flatten(obj: Any, prefix: str) -> None:
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                new_key = f"{prefix}{separator}{key}" if prefix else key
+                _flatten(value, new_key)
+        elif isinstance(obj, (list, tuple)):
+            for i, value in enumerate(obj):
+                new_key = f"{prefix}[{i}]"
+                _flatten(value, new_key)
+        else:
+            result[prefix] = obj
+
+    _flatten(data, "")
+    return result
