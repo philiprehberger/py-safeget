@@ -1,4 +1,10 @@
 # Changelog
+
+## 0.3.0 (2026-05-30)
+
+- Add `delete_path()` for dot-path mutation/removal
+- Add `walk()` generator yielding `(path, value)` pairs for every node (or only leaves)
+
 ## 0.1.5- Add pytest and mypy tool configuration to pyproject.toml
 
 ## 0.2.0 (2026-04-04)

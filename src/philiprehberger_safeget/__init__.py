@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import Any
 
 
 __all__ = [
+    "delete_path",
     "flatten",
     "safeget",
     "safeset",
     "has_path",
     "pluck",
+    "walk",
 ]
 
 _MISSING = object()
@@ -134,3 +137,88 @@ def flatten(data: dict[str, Any], *, separator: str = ".") -> dict[str, Any]:
 
     _flatten(data, "")
     return result
+
+
+def delete_path(
+    data: dict | list,
+    path: str,
+    *,
+    separator: str = ".",
+) -> bool:
+    """Remove the value at *path* from *data*. Mutates in place.
+
+    Args:
+        data: The dict or list to modify.
+        path: Dot-separated path string.
+        separator: Path separator. Defaults to ``"."``.
+
+    Returns:
+        True if anything was removed; False if the path was absent.
+    """
+    keys = path.split(separator)
+    parent: Any = data
+
+    for key in keys[:-1]:
+        if isinstance(parent, dict):
+            if key not in parent:
+                return False
+            parent = parent[key]
+        elif isinstance(parent, (list, tuple)):
+            try:
+                parent = parent[int(key)]
+            except (ValueError, IndexError):
+                return False
+        else:
+            return False
+
+    last = keys[-1]
+    if isinstance(parent, dict):
+        if last in parent:
+            parent.pop(last)
+            return True
+        return False
+    if isinstance(parent, list):
+        try:
+            parent.pop(int(last))
+            return True
+        except (ValueError, IndexError):
+            return False
+    return False
+
+
+def walk(
+    data: dict | list,
+    *,
+    leaves_only: bool = False,
+    separator: str = ".",
+) -> Iterator[tuple[str, Any]]:
+    """Yield ``(path, value)`` pairs for every node in *data*.
+
+    Args:
+        data: The dict or list to traverse.
+        leaves_only: When True, only yield leaf nodes (non-dict, non-list values).
+        separator: Path separator. Defaults to ``"."``.
+
+    Yields:
+        Tuples of ``(path, value)`` for each node encountered.
+    """
+
+    def _walk(node: Any, prefix: str) -> Iterator[tuple[str, Any]]:
+        if isinstance(node, dict):
+            items: Iterator[tuple[Any, Any]] = iter(node.items())
+        elif isinstance(node, list):
+            items = iter(enumerate(node))
+        else:
+            return
+
+        for key, value in items:
+            new_path = f"{prefix}{separator}{key}" if prefix else str(key)
+            is_container = isinstance(value, (dict, list))
+            if is_container:
+                if not leaves_only:
+                    yield new_path, value
+                yield from _walk(value, new_path)
+            else:
+                yield new_path, value
+
+    yield from _walk(data, "")

@@ -109,3 +109,64 @@ def test_flatten_custom_separator():
 
     data = {"a": {"b": 1}}
     assert flatten(data, separator="/") == {"a/b": 1}
+
+
+def test_delete_path_removes_nested_key():
+    from philiprehberger_safeget import delete_path
+
+    data = {"a": {"b": 1, "c": 2}}
+    assert delete_path(data, "a.b") is True
+    assert data == {"a": {"c": 2}}
+
+
+def test_delete_path_missing_returns_false():
+    from philiprehberger_safeget import delete_path
+
+    data = {"a": {"b": 1}}
+    assert delete_path(data, "x.y") is False
+    assert data == {"a": {"b": 1}}
+
+
+def test_delete_path_list_index():
+    from philiprehberger_safeget import delete_path
+
+    data = {"users": [{"id": 1}, {"id": 2}]}
+    assert delete_path(data, "users.0") is True
+    assert len(data["users"]) == 1
+    assert data["users"][0] == {"id": 2}
+
+
+def test_walk_yields_all_nodes():
+    from philiprehberger_safeget import walk
+
+    data = {"a": {"b": 1, "c": [10, 20]}}
+    result = list(walk(data))
+    expected = {
+        ("a", (("b", 1), ("c", (10, 20)))),
+        ("a.b", 1),
+        ("a.c", (10, 20)),
+        ("a.c.0", 10),
+        ("a.c.1", 20),
+    }
+    # Compare via normalized forms since dicts/lists aren't hashable.
+    def _normalize(value):
+        if isinstance(value, dict):
+            return tuple((k, _normalize(v)) for k, v in value.items())
+        if isinstance(value, list):
+            return tuple(_normalize(v) for v in value)
+        return value
+
+    normalized = {(p, _normalize(v)) for p, v in result}
+    assert normalized == expected
+
+
+def test_walk_leaves_only():
+    from philiprehberger_safeget import walk
+
+    data = {"a": {"b": 1, "c": [10, 20]}}
+    result = list(walk(data, leaves_only=True))
+    assert sorted(result) == sorted([
+        ("a.b", 1),
+        ("a.c.0", 10),
+        ("a.c.1", 20),
+    ])

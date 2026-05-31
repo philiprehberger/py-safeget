@@ -39,12 +39,42 @@ pluck(data, "users.0.name", "config.debug")
 # {"users.0.name": "Alice", "config.debug": True}
 ```
 
+### Deleting and walking
+
+```python
+from philiprehberger_safeget import delete_path, walk
+
+# Remove a nested key (mutates in place); returns True if something was removed
+data = {"a": {"b": 1, "c": 2}}
+delete_path(data, "a.b")   # True  -> data == {"a": {"c": 2}}
+delete_path(data, "x.y")   # False -> data unchanged
+
+# Works on list indices too
+data = {"users": [{"id": 1}, {"id": 2}]}
+delete_path(data, "users.0")   # True -> data == {"users": [{"id": 2}]}
+
+# Iterate every (path, value) pair in a nested structure
+for path, value in walk({"a": {"b": 1, "c": [10, 20]}}):
+    print(path, value)
+# a {'b': 1, 'c': [10, 20]}
+# a.b 1
+# a.c [10, 20]
+# a.c.0 10
+# a.c.1 20
+
+# Only the leaves
+list(walk({"a": {"b": 1, "c": [10, 20]}}, leaves_only=True))
+# [("a.b", 1), ("a.c.0", 10), ("a.c.1", 20)]
+```
+
 ## API
 
 - `safeget(data, path, default=None, separator=".")` — Get nested value
 - `safeset(data, path, value, separator=".")` — Set nested value
 - `has_path(data, path, separator=".")` — Check if path exists
 - `pluck(data, *paths, default=None)` — Extract multiple paths
+- `delete_path(data, path, separator=".")` — Remove value at path; returns whether anything was removed
+- `walk(data, leaves_only=False, separator=".")` — Iterate `(path, value)` pairs for every node (or only leaves)
 
 ## Development
 
